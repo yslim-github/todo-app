@@ -83,7 +83,13 @@ export default function Home() {
           </button>
         </div>
 
-        <ul className="mt-6 space-y-2">
+        {todos.length > 0 && (
+          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+            완료 {todos.filter((t) => t.completed).length} / 전체 {todos.length}
+          </p>
+        )}
+
+        <ul className="mt-4 space-y-2">
           {todos.map((todo) => (
             <li
               key={todo.id}
