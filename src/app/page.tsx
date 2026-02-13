@@ -15,6 +15,8 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -82,6 +84,28 @@ export default function Home() {
     setEditingId(null);
   };
 
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) return;
+    const updated = [...todos];
+    const [moved] = updated.splice(dragIndex, 1);
+    updated.splice(index, 0, moved);
+    setTodos(updated);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div className="flex min-h-screen items-start justify-center bg-zinc-50 pt-20 dark:bg-zinc-950">
       <main className="w-full max-w-lg px-4">
@@ -130,10 +154,19 @@ export default function Home() {
         )}
 
         <ul className="mt-4 space-y-2">
-          {todos.map((todo) => (
+          {todos.map((todo, index) => (
             <li
               key={todo.id}
-              className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800"
+              draggable={editingId !== todo.id}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={() => handleDrop(index)}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-3 rounded-lg border bg-white px-4 py-3 dark:bg-zinc-800 ${
+                dragOverIndex === index && dragIndex !== index
+                  ? "border-blue-400 dark:border-blue-500"
+                  : "border-zinc-200 dark:border-zinc-700"
+              } ${dragIndex === index ? "opacity-50" : ""} cursor-grab active:cursor-grabbing`}
             >
               <input
                 type="checkbox"
