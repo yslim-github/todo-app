@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Todo {
   id: number;
@@ -11,6 +11,22 @@ interface Todo {
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState("");
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = saved ? saved === "dark" : prefersDark;
+    setDark(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
+  }, []);
+
+  const toggleDark = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
 
   const addTodo = () => {
     const trimmed = input.trim();
@@ -37,9 +53,18 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-start justify-center bg-zinc-50 pt-20 dark:bg-zinc-950">
       <main className="w-full max-w-lg px-4">
-        <h1 className="mb-8 text-center text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Todo App
-        </h1>
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Todo App
+          </h1>
+          <button
+            onClick={toggleDark}
+            className="rounded-lg border border-zinc-300 p-2 text-xl hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
+            aria-label="다크모드 토글"
+          >
+            {dark ? "\u2600\uFE0F" : "\uD83C\uDF19"}
+          </button>
+        </div>
 
         <div className="flex gap-2">
           <input
