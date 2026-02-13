@@ -15,6 +15,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -179,21 +180,44 @@ export default function Home() {
         </div>
 
         {todos.length > 0 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              완료 {todos.filter((t) => t.completed).length} / 전체 {todos.length}
-            </p>
-            <button
-              onClick={() => setTodos([])}
-              className="rounded px-2 py-1 text-sm text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
-            >
-              전체 삭제
-            </button>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                완료 {todos.filter((t) => t.completed).length} / 전체 {todos.length}
+              </p>
+              <button
+                onClick={() => setTodos([])}
+                className="rounded px-2 py-1 text-sm text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
+              >
+                전체 삭제
+              </button>
+            </div>
+            <div className="flex gap-1 rounded-lg bg-zinc-200 p-1 dark:bg-zinc-700">
+              {(["all", "active", "completed"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    filter === f
+                      ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-600 dark:text-zinc-100"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                  }`}
+                >
+                  {f === "all" ? "전체" : f === "active" ? "미완료" : "완료"}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         <ul ref={listRef} className="mt-4 space-y-2">
-          {todos.map((todo, index) => (
+          {todos
+            .filter((t) =>
+              filter === "all" ? true : filter === "active" ? !t.completed : t.completed
+            )
+            .map((todo) => {
+              const index = todos.indexOf(todo);
+              return (
             <li
               key={todo.id}
               draggable={editingId !== todo.id}
@@ -248,7 +272,8 @@ export default function Home() {
                 삭제
               </button>
             </li>
-          ))}
+              );
+            })}
         </ul>
 
         {todos.length === 0 && (
