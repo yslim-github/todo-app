@@ -12,6 +12,7 @@ export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [input, setInput] = useState("");
   const [dark, setDark] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -19,7 +20,19 @@ export default function Home() {
     const isDark = saved ? saved === "dark" : prefersDark;
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
+
+    const savedTodos = localStorage.getItem("todos");
+    if (savedTodos) {
+      setTodos(JSON.parse(savedTodos));
+    }
+    setLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+  }, [todos, loaded]);
 
   const toggleDark = () => {
     const next = !dark;
