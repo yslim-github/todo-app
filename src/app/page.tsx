@@ -13,6 +13,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [dark, setDark] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -61,6 +63,23 @@ export default function Home() {
 
   const deleteTodo = (id: number) => {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  const startEdit = (todo: Todo) => {
+    setEditingId(todo.id);
+    setEditText(todo.text);
+  };
+
+  const saveEdit = () => {
+    const trimmed = editText.trim();
+    if (trimmed && editingId !== null) {
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === editingId ? { ...todo, text: trimmed } : todo
+        )
+      );
+    }
+    setEditingId(null);
   };
 
   return (
@@ -122,15 +141,31 @@ export default function Home() {
                 onChange={() => toggleTodo(todo.id)}
                 className="h-5 w-5 cursor-pointer accent-blue-600"
               />
-              <span
-                className={`flex-1 ${
-                  todo.completed
-                    ? "text-zinc-400 line-through"
-                    : "text-zinc-900 dark:text-zinc-100"
-                }`}
-              >
-                {todo.text}
-              </span>
+              {editingId === todo.id ? (
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveEdit();
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                  onBlur={saveEdit}
+                  autoFocus
+                  className="flex-1 rounded border border-blue-400 bg-transparent px-2 py-0.5 text-zinc-900 focus:outline-none dark:text-zinc-100"
+                />
+              ) : (
+                <span
+                  onDoubleClick={() => startEdit(todo)}
+                  className={`flex-1 cursor-pointer ${
+                    todo.completed
+                      ? "text-zinc-400 line-through"
+                      : "text-zinc-900 dark:text-zinc-100"
+                  }`}
+                >
+                  {todo.text}
+                </span>
+              )}
               <button
                 onClick={() => deleteTodo(todo.id)}
                 className="rounded px-2 py-1 text-sm text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
