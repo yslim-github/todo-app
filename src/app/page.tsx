@@ -97,9 +97,17 @@ export default function Home() {
         </div>
 
         {todos.length > 0 && (
-          <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-            완료 {todos.filter((t) => t.completed).length} / 전체 {todos.length}
-          </p>
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              완료 {todos.filter((t) => t.completed).length} / 전체 {todos.length}
+            </p>
+            <button
+              onClick={() => setTodos([])}
+              className="rounded px-2 py-1 text-sm text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950"
+            >
+              전체 삭제
+            </button>
+          </div>
         )}
 
         <ul className="mt-4 space-y-2">
