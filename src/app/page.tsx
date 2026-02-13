@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Todo {
   id: number;
@@ -17,6 +17,8 @@ export default function Home() {
   const [editText, setEditText] = useState("");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const touchStartY = useRef<number>(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -106,6 +108,43 @@ export default function Home() {
     setDragOverIndex(null);
   };
 
+  const getIndexFromY = useCallback(
+    (y: number): number | null => {
+      if (!listRef.current) return null;
+      const items = listRef.current.children;
+      for (let i = 0; i < items.length; i++) {
+        const rect = items[i].getBoundingClientRect();
+        if (y >= rect.top && y <= rect.bottom) return i;
+      }
+      return null;
+    },
+    []
+  );
+
+  const handleTouchStart = (index: number, e: React.TouchEvent) => {
+    if (editingId !== null) return;
+    touchStartY.current = e.touches[0].clientY;
+    setDragIndex(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragIndex === null) return;
+    e.preventDefault();
+    const overIndex = getIndexFromY(e.touches[0].clientY);
+    setDragOverIndex(overIndex);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+      const updated = [...todos];
+      const [moved] = updated.splice(dragIndex, 1);
+      updated.splice(dragOverIndex, 0, moved);
+      setTodos(updated);
+    }
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div className="flex min-h-screen items-start justify-center bg-zinc-50 pt-20 dark:bg-zinc-950">
       <main className="w-full max-w-lg px-4">
@@ -153,7 +192,7 @@ export default function Home() {
           </div>
         )}
 
-        <ul className="mt-4 space-y-2">
+        <ul ref={listRef} className="mt-4 space-y-2">
           {todos.map((todo, index) => (
             <li
               key={todo.id}
@@ -162,6 +201,9 @@ export default function Home() {
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={() => handleDrop(index)}
               onDragEnd={handleDragEnd}
+              onTouchStart={(e) => handleTouchStart(index, e)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               className={`flex items-center gap-3 rounded-lg border bg-white px-4 py-3 dark:bg-zinc-800 ${
                 dragOverIndex === index && dragIndex !== index
                   ? "border-blue-400 dark:border-blue-500"
